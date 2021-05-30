@@ -1,0 +1,17 @@
+<RCC>
+  <qresource prefix="src/svg">
+    <file>src/svg/backward-solid.svg</file>
+    <file>src/svg/dropdown.svg</file>
+    <file>src/svg/fast-backward-solid.svg</file>
+    <file>src/svg/forward-solid.svg</file>
+    <file>src/svg/pause-circle-regular.svg</file>
+    <file>src/svg/pause-circle-solid.svg</file>
+    <file>src/svg/pause-solid.svg</file>
+    <file>src/svg/play-circle-regular.svg</file>
+    <file>src/svg/play-circle-solid.svg</file>
+    <file>src/svg/play-solid.svg</file>
+  </qresource>
+  <qresource prefix="src/img">
+    <file>src/img/music_logo.png</file>
+  </qresource>
+</RCC>
