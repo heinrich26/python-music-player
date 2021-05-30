@@ -2,10 +2,11 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets, QtSvg
 from main_ui import Ui_MainWindow
-from tkinter import filedialog
-import pygame, sys, os, random, threading, time
+import pygame, sys, os, random, threading, time, mutagen
 from pathlib import Path
-from mutagen.mp3 import MP3, EasyID3
+from mutagen.mp3 import MP3
+from io import BytesIO
+from PIL import Image
 
 
 programm_path = os.path.abspath(os.path.dirname(sys.argv[0]))
@@ -52,15 +53,15 @@ class MainWindow(QtWidgets.QMainWindow):
 		options = QtWidgets.QFileDialog.Options()
 		files, _ = QtWidgets.QFileDialog.getOpenFileNames(self,"Select Song(s)", lastdir, "Audio Files (*.mp3)", options=options)
 
-		font = QtGui.QFont()
-		font.setBold(True)
-		font.setWeight(75)
-		default_icon = QtGui.QIcon()
-		default_icon.addPixmap(QtGui.QPixmap("../../../Pictures/2colorthing.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+		# font = QtGui.QFont()
+		# font.setBold(True)
+		# font.setWeight(75)
+		# default_icon = QtGui.QIcon()
+		# default_icon.addPixmap(QtGui.QPixmap("../../../Pictures/2colorthing.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
 
 		files = [file.replace("\\", "/") for file in files]
 
-		for file in files with EasyID3(file) as sondobj:
+		for file in files:
 			# song = QtWidgets.QListWidgetItem()
 			# song.setFont(font)
 			# if False:
@@ -69,11 +70,16 @@ class MainWindow(QtWidgets.QMainWindow):
 			# 	song.setIcon(default_icon)
 			# song.setText("1st\n2nd")
 			# self.ui.PlaylistContainer.addItem(song)
-			self.songlist.append(song)
-			self.songdata[file] = {"album": songobj["album"], "title": songobj["title"], "artist": songobj["artist"], "length":songobj["length"]}
+			songobj = mutagen.File(file)
+			songtags = songobj.keys()
+			self.songdata[file] = {tag:songobj.get(tag) for tag in songtags if not tag[0:4] in ("APIC", "TXXX")}
+			self.songdata[file]["length"] = songobj.info.length
+			if "APIC:" in songtags:
+				self.songdata[file]["cover"] = QtGui.QImage().loadFromData(songobj.get("APIC:").data)
+
 
 	def add_playlist_item(self, song):
-
+		pass
 
 	def play_pause(self, arg):
 		if type(arg) == bool:

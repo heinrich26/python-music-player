@@ -12,21 +12,15 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 class PlaylistItem(object):
     def __init__(self, file):
-
         self.setWindowModality(QtCore.Qt.NonModal)
         self.setEnabled(True)
         self.resize(392, 76)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setHorizontalStretch(1)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.sizePolicy().hasHeightForWidth())
         self.setSizePolicy(sizePolicy)
         self.setMaximumSize(QtCore.QSize(16777215, 166))
-        self.setStatusTip("")
-        self.setWhatsThis("")
-        self.setAccessibleName("")
-        self.setAccessibleDescription("")
-        self.setWindowFilePath("")
         self.gridLayout = QtWidgets.QGridLayout(self)
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
         self.gridLayout.setSpacing(4)
