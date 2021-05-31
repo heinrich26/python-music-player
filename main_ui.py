@@ -42,17 +42,58 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addWidget(self.NavigationAddSongButton)
         self.verticalLayout_2.addWidget(self.NavigationHeader)
         self.PlaylistContainer = QtWidgets.QScrollArea(self.MainContainer)
+        self.PlaylistContainer.setStyleSheet("QScrollBar:vertical {\n"
+"    border-width: 0;\n"
+"    background-color: rgba(0,0,0,0);\n"
+"    width:9px;\n"
+"    margin-top: 2px;\n"
+"    margin-bottom: 2px;\n"
+"}\n"
+"QScrollBar::handle {\n"
+"    background-color:rgba(70,70,70,180);\n"
+"    min-height: 25px;\n"
+"    border-radius:3px;\n"
+"    margin-right: 3px;\n"
+"    margin-left: 0;\n"
+"}\n"
+"QScrollBar::add-line:vertical {\n"
+"    border: 0px;\n"
+"    background-color: rgba(0,0,0,0);\n"
+"    height: 0px;\n"
+"}\n"
+"QScrollBar::sub-line:vertical {\n"
+"    border: 0px;\n"
+"    background-color: rgba(0,0,0,0);\n"
+"    height: 0px;\n"
+"}")
+        self.PlaylistContainer.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.PlaylistContainer.setFrameShadow(QtWidgets.QFrame.Plain)
+        self.PlaylistContainer.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
+        self.PlaylistContainer.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.PlaylistContainer.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustIgnored)
         self.PlaylistContainer.setWidgetResizable(True)
         self.PlaylistContainer.setObjectName("PlaylistContainer")
         self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 418, 662))
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 420, 664))
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.scrollAreaWidgetContents.sizePolicy().hasHeightForWidth())
+        self.scrollAreaWidgetContents.setSizePolicy(sizePolicy)
         self.scrollAreaWidgetContents.setObjectName("scrollAreaWidgetContents")
         self.PlaylistLayout = QtWidgets.QVBoxLayout(self.scrollAreaWidgetContents)
         self.PlaylistLayout.setContentsMargins(0, 0, 0, 0)
         self.PlaylistLayout.setSpacing(1)
         self.PlaylistLayout.setObjectName("PlaylistLayout")
         self.dummywidgetinplaylist = QtWidgets.QWidget(self.scrollAreaWidgetContents)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Preferred)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.dummywidgetinplaylist.sizePolicy().hasHeightForWidth())
+        self.dummywidgetinplaylist.setSizePolicy(sizePolicy)
         self.dummywidgetinplaylist.setObjectName("dummywidgetinplaylist")
+        self.verticalLayout_4 = QtWidgets.QVBoxLayout(self.dummywidgetinplaylist)
+        self.verticalLayout_4.setObjectName("verticalLayout_4")
         self.PlaylistLayout.addWidget(self.dummywidgetinplaylist)
         self.PlaylistContainer.setWidget(self.scrollAreaWidgetContents)
         self.verticalLayout_2.addWidget(self.PlaylistContainer)
