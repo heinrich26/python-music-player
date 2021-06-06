@@ -20,8 +20,13 @@ jobs:
         uses: ArtemSBulgakov/buildozer-action@v1
         id: buildozer
         with:
+<<<<<<< HEAD
         workdir: test-app
         buildozer_version: stable
+=======
+          workdir: test-app
+          buildozer_version: stable
+>>>>>>> 490385967c71a207df0051c4b0e314baee669135
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
