@@ -28,7 +28,7 @@ from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.floatlayout import MDFloatLayout
 from kivymd.uix.list import BaseListItem, ContainerSupport, IRightBodyTouch
 from kivymd.uix.selectioncontrol import MDCheckbox
-from kivymd.uix.relativelayout import MDRelativeLayout
+from relativelayout import MDRelativeLayout
 from kivymd.uix.button import MDFlatButton
 from kivymd.utils.fitimage import FitImage
 
@@ -594,7 +594,6 @@ class BetterFileManager(ThemableBehavior, MDRelativeLayout):
     def format_path(self, path):
         fixed_path = path.replace("\\", "/").strip("/").split("/")
         return f"[color={get_hex_from_color(self.theme_cls.secondary_text_color)}]" + f" [font=Icons]{md_icons['chevron-right']}[/font][/ref] ".join([f"[ref={i}][color={get_hex_from_color(self.theme_cls.secondary_text_color)}]{folder}[/color]" if i != 0 else f"[color={get_hex_from_color(self.theme_cls.primary_light)}]{folder}[/color][/color]" for folder, i in zip(fixed_path, range(len(fixed_path) -1, -1, -1))])
-        # " > ".join([f"{f'[ref={i}]'if i != 0 else ''}[color={get_hex_from_color(self.theme_cls.primary_color) if i == 0 else get_hex_from_color(self.ids.toolbar.specific_text_color)}]{folder}[/color]{'[/ref]'if i != 0 else ''}" for folder, i in zip(fixed_path.split("/"), range(fixed_path.count("/"), -1, -1))])
 
 
 Builder.load_string(ACTIVITY_MANAGER)
@@ -602,3 +601,4 @@ Builder.load_string(ACTIVITY_MANAGER)
 
 if __name__ == "__main__":
     from main import Example
+    Example().run()

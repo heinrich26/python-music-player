@@ -1,11 +1,14 @@
 from kivy.core.window import Window
 from kivy.lang import Builder
+from kivy.utils import platform
 
 from kivymd.app import MDApp
-from better_filemanager import BetterFileManager
 from kivymd.toast import toast
 
 from pathlib import Path
+
+from better_filemanager import BetterFileManager
+
 
 if platform == "android":
     from android.storage import primary_external_storage_path
@@ -32,6 +35,7 @@ BoxLayout:
 '''
 
 
+
 class Example(MDApp):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -48,15 +52,10 @@ class Example(MDApp):
         return Builder.load_string(KV)
 
     def file_manager_open(self):
-        self.file_manager.show(path=primary_external_storage_path() if platform == "android" else str(Path.home()) + "/Music/")  # output manager to the screen
+        self.file_manager.show(path=str(primary_external_storage_path()) if platform == "android" else str(Path.home()) + "/Music/")  # output manager to the screen
         self.manager_open = True
 
-    def select_path(self, path):
-        '''It will be called when you click on the file name
-        or the catalog selection button.
-        '''
-
-        self.exit_manager()
+    def select_path(self, path):self.exit_manager()
         try:
             toast(path)
         except:
@@ -77,4 +76,5 @@ class Example(MDApp):
         return True
 
 
-Example().run()
+if __name__ == "__main__":
+    Example().run()
