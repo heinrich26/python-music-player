@@ -31,18 +31,16 @@ source.exclude_dirs = tests, bin
 version = 0.1
 
 # (list) Application requirements
-# comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy==2.0.0,https://github.com/kivymd/KivyMD/archive/master.zip,android,PIL,plyer
+requirements = python3,kivy==master,git+https://github.com/HeaTTheatR/KivyMD.git,android,PIL,plyer
 orientation = portrait
 
 # (list) List of service to declare
 #services = NAME:ENTRYPOINT_TO_PY,NAME2:ENTRYPOINT2_TO_PY
 
-#
-# OSX Specific
-#
 
-#
+# OSX Specific
+
+
 # author = © Copyright Info
 
 # change the major version of python used by the app

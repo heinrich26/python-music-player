@@ -55,6 +55,7 @@ Screen:
                 MDToolbar:
                     title: "Libary"
                     left_action_items: [["keyboard-backspace", lambda event: app.nav_to("main_page")]]
+                    right_action_items: [["music-note-plus", lambda event: app.add_song()]]
 
                 MDRectangleFlatButton:
                     text: 'Add Song(s)'
@@ -96,11 +97,5 @@ class MainApp(MDApp):
 
     def nav_to(self, page):
         self.root.ids.screen_manager.current = page
-
-    def hello(self, *args):
-        print("hi")
-
-
-# file manager
 
 MainApp().run()

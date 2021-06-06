@@ -15,7 +15,7 @@ Builder.load_string(
 <CustomOneLineIconListItem>:
 
     IconLeftWidget:
-        icon: "root.icon"
+        icon: root.icon
 
 
 <PreviousMDIcons>:
