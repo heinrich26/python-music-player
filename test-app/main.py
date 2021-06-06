@@ -5,6 +5,8 @@ from kivy.utils import platform
 from kivymd.app import MDApp
 from kivymd.toast import toast
 
+from plyer import filechooser
+
 from pathlib import Path
 
 from better_filemanager import BetterFileManager
@@ -30,8 +32,14 @@ BoxLayout:
         MDRoundFlatIconButton:
             text: "Open manager"
             icon: "folder"
-            pos_hint: {'center_x': .5, 'center_y': .6}
+            pos_hint: {'center_x': .5, 'center_y': .33}
             on_release: app.file_manager_open()
+
+        MDRoundFlatIconButton:
+            text: "Open plyer manager"
+            icon: "folder"
+            pos_hint: {'center_x': .5, 'center_y': .66}
+            on_release: app.plyer_file_manager_open()
 '''
 
 
@@ -54,6 +62,10 @@ class Example(MDApp):
     def file_manager_open(self):
         self.file_manager.show(path=str(primary_external_storage_path()) if platform == "android" else str(Path.home()) + "/Music/")  # output manager to the screen
         self.manager_open = True
+
+    def plyer_file_manager_open(self):
+        files = filechooser.open_file(title="Select FILES!!!", multiple=True)  # output manager to the screen
+        print("Type of selection:", type(files), files)
 
     def select_path(self, path):
         self.exit_manager()
