@@ -55,7 +55,8 @@ class Example(MDApp):
         self.file_manager.show(path=str(primary_external_storage_path()) if platform == "android" else str(Path.home()) + "/Music/")  # output manager to the screen
         self.manager_open = True
 
-    def select_path(self, path):self.exit_manager()
+    def select_path(self, path):
+        self.exit_manager()
         try:
             toast(path)
         except:
