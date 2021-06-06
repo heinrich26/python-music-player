@@ -7,6 +7,11 @@ from kivymd.toast import toast
 
 from pathlib import Path
 
+if platform == "android":
+    from android.storage import primary_external_storage_path
+    from android.permissions import request_permissions, Permission
+    request_permissions([Permission.WRITE_EXTERNAL_STORAGE, Permission.READ_EXTERNAL_STORAGE])
+
 
 KV = '''
 BoxLayout:
@@ -43,7 +48,7 @@ class Example(MDApp):
         return Builder.load_string(KV)
 
     def file_manager_open(self):
-        self.file_manager.show(str(Path.home()))  # output manager to the screen
+        self.file_manager.show(path=primary_external_storage_path() if platform == "android" else str(Path.home()) + "/Music/")  # output manager to the screen
         self.manager_open = True
 
     def select_path(self, path):

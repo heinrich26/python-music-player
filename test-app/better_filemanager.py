@@ -598,3 +598,7 @@ class BetterFileManager(ThemableBehavior, MDRelativeLayout):
 
 
 Builder.load_string(ACTIVITY_MANAGER)
+
+
+if __name__ == "__main__":
+    from main import Example
