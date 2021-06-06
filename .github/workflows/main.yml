@@ -1,59 +1,30 @@
 # This is a basic workflow to help you get started with Actions
-
-name: CI
-
-# Controls when the action will run. 
+name: Build Android APK
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
-  # Allows you to run this workflow manually from the Actions tab
+  
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build-android:
-    name: Build .apk for Android
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
+# Build job. Builds app for Android with Buildozer
+build-android:
+  name: Build for Android
+  runs-on: ubuntu-latest
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v2
 
-      # Runs a single command using the runners shell
-      - name: Build with Buildozer
-        uses: ArtemSBulgakov/buildozer-action@v1
-        id: buildozer
-        with:
-          command: buildozer android debug
-          workdir: test-app
-          buildozer_version: stable
+    - name: Build with Buildozer
+      uses: ArtemSBulgakov/buildozer-action@v1
+      id: buildozer
+      with:
+        workdir: test-app
+        buildozer_version: stable
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: package
-          path: ${{ steps.buildozer.outputs.filename }}
-
-
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          path: data
-          ref: data # Branch name
-
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.7
-          architecture: x64
-
-      - name: Push binary to data branch
-        if: github.event_name == 'push'
-        run: python main/.ci/move_binary.py "${{ steps.buildozer.outputs.filename }}" main data bin
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: package
+        path: ${{ steps.buildozer.outputs.filename }}
