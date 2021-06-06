@@ -13,7 +13,7 @@ from kivymd.toast import toast
 
 from pathlib import Path
 
-from better_filemanager import BetterFileManager
+from plyer import filechooser
 
 
 if platform == "android":
@@ -85,13 +85,14 @@ class MainApp(MDApp):
         return Builder.load_string(KV)
 
     def on_start(self):
-        self.file_manager = BetterFileManager(
-        exit_manager=self.exit_manager,
-        select_path=self.select_path, ext=[".mp3",".m4a",".ogg",".wav"], selector="multi", show_filetype=True)
+        ext=[]
 
     def add_song(self):
-        self.file_manager_open()
+        files = filechooser.open_file(multiple=True, filters=[["Music Files", "*mp3", "*m4a", "*ogg", "*wav"]])
         # self.root.ids.container.add_widget(ButtonListItem(on_release=self.hello, text="Hello", secondary_text="You"))
+        for file in files:
+            print(file)
+
 
     def nav_to(self, page):
         self.root.ids.screen_manager.current = page
@@ -101,17 +102,5 @@ class MainApp(MDApp):
 
 
 # file manager
-    def file_manager_open(self):
-        self.file_manager.show(path=primary_external_storage_path() if platform == "android" else str(Path.home()) + "/Music/")  # output manager to the screen
-        self.manager_open = True
-
-    def select_path(self, path):
-        self.file_manager.exit_manager()
-        print(path)
-
-    def exit_manager(self, *args):
-        self.manager_open = False
-        self.file_manager.close()
-
 
 MainApp().run()

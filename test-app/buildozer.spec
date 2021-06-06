@@ -32,7 +32,7 @@ version = 0.1
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy==2.0.0,https://github.com/kivymd/KivyMD/archive/master.zip,android,PIL
+requirements = python3,kivy==2.0.0,https://github.com/kivymd/KivyMD/archive/master.zip,android,PIL,plyer
 orientation = portrait
 
 # (list) List of service to declare
