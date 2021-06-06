@@ -66,6 +66,9 @@ class MainWindow(QtWidgets.QMainWindow):
 			if "APIC:" in songtags:
 				self.songdata[file]["cover"] = QtGui.QPixmap()
 				self.songdata[file]["cover"].loadFromData(songobj.get("APIC:").data)
+				buf = BytesIO(songobj.get("APIC:").data)
+				im = Image.open(buf)
+				print(im.size)
 			else:
 				self.songdata[file]["cover"] = missing_album_cover
 			# setting the Title
@@ -88,7 +91,9 @@ class MainWindow(QtWidgets.QMainWindow):
 	def add_playlist_item(self, song):
 		song_widget = PlaylistItem(song, self)
 		self.songlist.append(song_widget)
-		self.ui.PlaylistLayout.addWidget(song_widget)
+
+		# sorting
+		self.ui.PlaylistLayout.insertWidget(sorted(self.songdata.keys(), key=lambda path: self.songdata[path]["title"]).index(song["path"]), song_widget)
 
 	def play_pause(self, arg):
 		if type(arg) == bool:
@@ -96,6 +101,7 @@ class MainWindow(QtWidgets.QMainWindow):
 				pygame.mixer.music.pause()
 				self.playing = False
 			elif pygame.mixer.music.get_pos() == -1:
+				# only play if songs exist
 				if self.songdata != {}:
 					new_song = self.songdata[random.choice(list(self.songdata.keys()))]
 
@@ -105,6 +111,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
 					pygame.mixer.music.play(loops=0)
 					self.playing = True
+				# reset the Button
 				else: self.ui.actionPlay_Pause.setChecked(False)
 			else:
 				pygame.mixer.music.unpause()
@@ -179,6 +186,9 @@ class PlaylistItem(QtWidgets.QWidget):
 		self.TrackInfoSub.setIndent(3)
 		self.verticalLayout.addWidget(self.TrackInfoSub)
 		self.gridLayout.addWidget(self.TrackInfoBox, 0, 1, 1, 1)
+		self.OverflowGradient = QtWidgets.QWidget(self)
+		self.OverflowGradient.setStyleSheet("QWidget { background-color: QLinearGradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0.85 rgba(0, 0, 0, 0), stop:1 rgba(240, 240, 240, 255)); }")
+		self.gridLayout.addWidget(self.OverflowGradient, 0, 1, 1, 1)
 		self.TrackCover = QtWidgets.QLabel(self)
 		self.TrackCover.setMaximumSize(QtCore.QSize(76, 76))
 		self.TrackCover.setAutoFillBackground(False)

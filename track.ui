@@ -12,7 +12,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>392</width>
+    <width>557</width>
     <height>76</height>
    </rect>
   </property>
@@ -103,11 +103,7 @@
          </font>
         </property>
         <property name="styleSheet">
-         <string notr="true">QLabel {
-	line-height:5;
-	text-overflow: ellipsis;
-	overflow: hidden;
-}</string>
+         <string notr="true">QLabel { line-height:5; text-overflow: ellipsis; overflow: hidden; }</string>
         </property>
         <property name="text">
          <string notr="true">sssssssssssssssssssssssssssssssssssssssssss</string>
@@ -166,6 +162,15 @@
      </layout>
     </widget>
    </item>
+   <item row="0" column="1">
+    <widget class="QLabel" name="OverflowGradient">
+     <property name="styleSheet">
+      <string notr="true">QLabel {
+	background-color: QLinearGradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0.85 rgba(0, 0, 0, 0), stop:1 rgba(240, 240, 240, 255));
+}</string>
+     </property>
+    </widget>
+   </item>
    <item row="0" column="0">
     <widget class="QLabel" name="TrackCover">
      <property name="maximumSize">
@@ -178,10 +183,7 @@
       <bool>false</bool>
      </property>
      <property name="styleSheet">
-      <string notr="true">QLabel {
-	background-color: #000;
-    margin: 8px
-}</string>
+      <string notr="true">QLabel { background-color: #000; margin: 8px }</string>
      </property>
      <property name="text">
       <string notr="true"/>
@@ -221,6 +223,10 @@
     </widget>
    </item>
   </layout>
+  <zorder>TrackInfoBox</zorder>
+  <zorder>TrackCover</zorder>
+  <zorder>pushButton</zorder>
+  <zorder>OverflowGradient</zorder>
  </widget>
  <resources>
   <include location="resources.qrc"/>
