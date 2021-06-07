@@ -9,8 +9,9 @@ from kivy.storage.jsonstore import JsonStore
 
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.list import IRightBodyTouch, TwoLineAvatarIconListItem
+from kivymd.uix.list import IRightBodyTouch, TwoLineAvatarIconListItem, ImageLeftWidget, IconLeftWidget, ILeftBody
 from kivymd.uix.button import MDIconButton
+from kivymd.uix.label import MDIcon
 from kivymd.uix.card import MDCardSwipe
 from kivymd.toast import toast
 
@@ -85,13 +86,13 @@ Screen:
 		md_bg_color: .2, .2, .2, 1
 		specific_text_color: 1, 1, 1, 1
 
-<PlaylistSongItem>
+<PlaylistItemWithCover>
 	elevation: 0
 	size_hint_y: None
 	height: content.height
-	type_swipe: "hand"
-	max_swipe_x: 0.2
-	on_swipe_complete: print("should've been added to the queue")
+	type_swipe: "auto"
+	max_swipe_x: 0.3
+	max_opened_x: dp(72)
 
 	MDCardSwipeLayerBox:
 		padding: dp(10), 0
@@ -114,21 +115,59 @@ Screen:
 			secondary_font_style: "Subtitle1"
 			text: root.text
 			secondary_text: root.secondary_text
-			_no_ripple_effect: True
-			on_press: print(self.height)
+			on_press: print(root.cover)
 			ImageLeftWidget:
 				source: root.cover
-				padding: 0
-				radius: 4,4
+				radius: dp(4), dp(4)
+
+<PlaylistItem>
+	elevation: 0
+	size_hint_y: None
+	height: content.height
+	type_swipe: "auto"
+	max_swipe_x: 0.3
+	max_opened_x: dp(72)
+
+	MDCardSwipeLayerBox:
+		padding: dp(10), 0
+		MDIcon:
+			icon: "playlist-plus"
+			pos_hint: {"center_y": .5}
+
+	MDCardSwipeFrontBox:
+		elevation: 1
+
+		TwoLineAvatarListItem:
+			id: content
+			elevation: 0
+			padding: dp(6), 0, 0, 0
+			_txt_top_pad: dp(12)
+			_txt_bot_pad: dp(6)
+			_txt_left_pad: dp(84)
+			font_style: "Subtitle1"
+			secondary_font_style: "Subtitle1"
+			text: root.text
+			secondary_text: root.secondary_text
+			on_press: print("i dont have a cover")
+			IconLeftWidgetWithoutTouch:
+				id: icon
+				icon: "account-music"
+				font_size: dp(56)
+				padding: 0, 0
+				theme_text_color: "Custom"
+				text_color: app.theme_cls.secondary_text_color
+
 '''
 
 
+class IconLeftWidgetWithoutTouch(ILeftBody, MDIcon):
+	_no_ripple_effect = True
 
 
-class PlaylistSongItem(MDCardSwipe):
+class PlaylistItem(MDCardSwipe):
 	text = StringProperty("")
 	secondary_text = StringProperty("")
-	cover = StringProperty("src/img/music_logo.png" if platform == "win" else "src/img/music_logo.png")
+	path = StringProperty("")
 
 	def __init__(self, **kwargs):
 		super().__init__(**kwargs)
@@ -139,6 +178,31 @@ class PlaylistSongItem(MDCardSwipe):
 		self.ids.content.ids._text_container.spacing = dp(4)
 		self.ids.content.ids._left_container.remove_widget(self.ids.content.ids._lbl_tertiary)
 
+	def on_swipe_complete(self, *args):
+		if self.state == "opened":
+			MDApp.get_running_app().add_to_queue(self.path)
+			self.close_card()
+
+
+class PlaylistItemWithCover(MDCardSwipe):
+	text = StringProperty("")
+	secondary_text = StringProperty("")
+	cover = StringProperty("")
+	path = StringProperty("")
+
+	def __init__(self, **kwargs):
+		super().__init__(**kwargs)
+		self.ids.content.ids._left_container.size = (dp(60), dp(60))
+		self.ids.content.ids._left_container.x = self.x + dp(14)
+		self.ids.content.ids._lbl_primary.font_size = 22
+		self.ids.content.ids._lbl_secondary.font_size = 16
+		self.ids.content.ids._text_container.spacing = dp(4)
+		self.ids.content.ids._left_container.remove_widget(self.ids.content.ids._lbl_tertiary)
+
+	def on_swipe_complete(self, *args):
+		if self.state == "opened":
+			MDApp.get_running_app().add_to_queue(self.path)
+			self.close_card()
 
 class ButtonListItem(TwoLineAvatarIconListItem):
 	source = StringProperty("src/img/music_logo.png")
@@ -149,6 +213,7 @@ class DropdownButton(IRightBodyTouch, MDIconButton):
 
 class MainApp(MDApp):
 	def build(self):
+		self.theme_cls.theme_style = "Dark"
 		return Builder.load_string(KV)
 
 	def on_start(self):
@@ -204,12 +269,18 @@ class MainApp(MDApp):
 	def nav_to(self, page):
 		self.root.ids.screen_manager.current = page
 
+	def add_to_queue(self, path):
+		print(f"Added {self.song_database.get(path)['title']} to Queue!")
+		toast(f"Added {self.song_database.get(path)['title']} to Queue!")
+
+
 
 def make_playlist_item(data):
 	m, s = divmod(int(round(data["length"], 0)), 60)
-	instance = {"viewclass": "PlaylistSongItem",
+	instance = {"viewclass": "PlaylistItemWithCover" if "cover" in data else "PlaylistItem",
 				"text": data["title"],
 				"secondary_text": f"{', '.join(data['artist'])} \u2022 {m:d}:{s:02d}" if "artist" in data else f"{m:d}:{s:02d}",
+				"path": data["path"]
 				}
 	if "cover" in data: instance["cover"] = data["cover"]
 	return instance
