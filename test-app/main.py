@@ -39,52 +39,54 @@ KV = '''
 		icon: "dots-vertical"
 
 Screen:
-	ScreenManager:
-		id: screen_manager
-		Screen:
-			name: "main_page"
-			BoxLayout:
-				orientation: "vertical"
+	BoxLayout:
+		orientation: "vertical"
+		ScreenManager:
+			id: screen_manager
+			Screen:
+				name: "main_page"
+				BoxLayout:
+					orientation: "vertical"
 
-				MDRectangleFlatButton:
-					text: "Music Library"
-					pos_hint: {'center_x': .5, 'center_y': 1}
-					on_press:
-						app.nav_to("song_view")
+					MDRectangleFlatButton:
+						text: "Music Library"
+						pos_hint: {'center_x': .5, 'center_y': 1}
+						on_press:
+							app.nav_to("song_view")
 
-				MDLabel:
-					text: "Hendriks Stupid Music Player"
-					halign: "center"
-		Screen:
-			name: "song_view"
-			BoxLayout:
-				orientation: "vertical"
+					MDLabel:
+						text: "Hendriks Stupid Music Player"
+						halign: "center"
+			Screen:
+				name: "song_view"
+				BoxLayout:
+					orientation: "vertical"
 
-				MDToolbar:
-					title: "Library"
-					left_action_items: [["keyboard-backspace", lambda event: app.nav_to("main_page")]]
-					right_action_items: [["music-note-plus", lambda event: app.add_song()]]
+					MDToolbar:
+						title: "Library"
+						left_action_items: [["keyboard-backspace", lambda event: app.nav_to("main_page")]]
+						right_action_items: [["music-note-plus", lambda event: app.init_add_song()]]
 
 
-				RecycleView:
-					id: playlist_container
-					key_viewclass: "viewclass"
-					key_size: "height"
-					bar_width: dp(4)
-					bar_color: app.theme_cls.primary_color
+					RecycleView:
+						id: playlist_container
+						key_viewclass: "viewclass"
+						key_size: "height"
+						bar_width: dp(4)
+						bar_color: app.theme_cls.primary_color
 
-					RecycleBoxLayout:
-						orientation: "vertical"
-						spacing: dp(1)
-						default_size: None, dp(72)
-						default_size_hint: 1, None
-						size_hint_y: None
-						height: self.minimum_height
+						RecycleBoxLayout:
+							orientation: "vertical"
+							spacing: dp(1)
+							default_size: None, dp(72)
+							default_size_hint: 1, None
+							size_hint_y: None
+							height: self.minimum_height
 
-	MDToolbar:
-		title: 'Track Bar'
-		md_bg_color: .2, .2, .2, 1
-		specific_text_color: 1, 1, 1, 1
+		MDToolbar:
+			title: 'Track Bar'
+			md_bg_color: .2, .2, .2, 1
+			specific_text_color: 1, 1, 1, 1
 
 <PlaylistItemWithCover>
 	elevation: 0
@@ -213,54 +215,67 @@ class DropdownButton(IRightBodyTouch, MDIconButton):
 
 class MainApp(MDApp):
 	def build(self):
-		self.theme_cls.theme_style = "Dark"
+		self.theme_cls.theme_style = "Dark" # we need DARK Theme lol
 		return Builder.load_string(KV)
 
 	def on_start(self):
 		print("We\'re in", Path.cwd(), "Our OS is", platform)
 		self.songlist = []
 
+		self.queue = JsonStore(os.path.abspath("queue.json"))
+		if not self.queue.exists("root"): # fix the playback etc.
+			self.queue["root"] = {"queue": [], "playback": [], "current_song": None, "generated_queue": []}
+		elif len(self.queue["root"]) != 4:
+			if not "queue" in self.queue["root"]:
+				self.queue["root"]["queue"] = []
+			if not "playback" in self.queue["root"]:
+				self.queue["root"]["playback"] = []
+			if not "current_song" in self.queue["root"]:
+				self.queue["root"]["current_song"] = None
+			if not "generated_queue" in self.queue["root"]:
+				self.queue["root"]["generated_queue"] = []
+
 		self.song_database = JsonStore(os.path.abspath("song_library.json"))
-		for song in self.song_database.keys():
+		for song in self.song_database.keys(): # setup Library
 			self.add_playlist_item(self.song_database.get(song))
 
-	def add_song(self):
-		files = filechooser.open_file(multiple=True, filters=[["Music Files", "*mp3", "*m4a", "*ogg", "*wav"]])
+	def init_add_song(self):
+		filechooser.open_file(on_selection=self.add_song, multiple=True, filters=[["Music Files", "*mp3", "*m4a", "*ogg", "*wav"]])
 
+	def add_song(self, files: list):
+		if files:
+			for file in [file.replace("\\", "/") for file in files]:
+				if not self.song_database.exists(file):
+					songobj = mutagen.File(file)
+					songtags = songobj.keys()
+					songdata = {"length": float(songobj.info.length), "path": str(file)}
+					# setting the Album Cover
+					if "APIC:" in songtags:
+						buf = BytesIO(songobj.get("APIC:").data)
+						cover = Image.open(buf)
+						cover_path = file.rsplit("/", 2)[0] + "/.thumbnails/"
 
-		for file in [file.replace("\\", "/") for file in files]:
-			if not self.song_database.exists(file):
-				toast(file)
-				songobj = mutagen.File(file)
-				songtags = songobj.keys()
-				songdata = {"length": float(songobj.info.length), "path": str(file)}
-				# setting the Album Cover
-				if "APIC:" in songtags:
-					buf = BytesIO(songobj.get("APIC:").data)
-					cover = Image.open(buf)
-					cover_path = file.rsplit("/", 2)[0] + "/.thumbnails/"
+						if not Path(cover_path).is_dir():
+							Path(cover_path).mkdir()
 
-					if not Path(cover_path).is_dir():
-						Path(cover_path).mkdir()
+						songdata["cover"] = cover_path + str(self.song_database.count()) + "." + cover.format.lower()
 
-					songdata["cover"] = cover_path + str(self.song_database.count()) + "." + cover.format.lower()
-
-					cover.save(str(songdata["cover"]), cover.format)
-				# setting the Title
-				if "TIT2" in songtags:
-					songdata["title"] = str(songobj.get("TIT2").text[0])
-				else:
-					songdata["title"] = str(file[file.rfind("/") + 1:file.rfind(".")])
-				if "TALB" in songtags:
-					songdata["album"] = str(songobj.get("TALB").text[0])
-				if "TPE1" in songtags:
-					songdata["artist"] = songobj.get("TPE1").text
-				if "TCON" in songtags:
-					songdata["genre"] = songobj.get("TCON").text
-				if "TDRC" in songtags:
-					songdata["year"] = int(str(songobj.get("TDRC").text[0]))
-				self.song_database.put(file, **songdata)
-				self.add_playlist_item(songdata)
+						cover.save(str(songdata["cover"]), cover.format)
+					# setting the Title
+					if "TIT2" in songtags:
+						songdata["title"] = str(songobj.get("TIT2").text[0])
+					else:
+						songdata["title"] = str(file[file.rfind("/") + 1:file.rfind(".")])
+					if "TALB" in songtags:
+						songdata["album"] = str(songobj.get("TALB").text[0])
+					if "TPE1" in songtags:
+						songdata["artist"] = songobj.get("TPE1").text
+					if "TCON" in songtags:
+						songdata["genre"] = songobj.get("TCON").text
+					if "TDRC" in songtags:
+						songdata["year"] = int(str(songobj.get("TDRC").text[0]))
+					self.song_database.put(file, **songdata)
+					self.add_playlist_item(songdata)
 
 	def add_playlist_item(self, song):
 		song_widget = make_playlist_item(song)
@@ -270,9 +285,8 @@ class MainApp(MDApp):
 		self.root.ids.screen_manager.current = page
 
 	def add_to_queue(self, path):
-		print(f"Added {self.song_database.get(path)['title']} to Queue!")
 		toast(f"Added {self.song_database.get(path)['title']} to Queue!")
-
+		self.queue["root"]["queue"].append(path)
 
 
 def make_playlist_item(data):
