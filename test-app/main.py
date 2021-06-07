@@ -2,7 +2,15 @@ import kivy
 
 from kivy.lang import Builder
 from kivy.metrics import dp
-from kivy.properties import StringProperty
+from kivy.properties import (
+    BooleanProperty,
+    ColorProperty,
+    ListProperty,
+    NumericProperty,
+    ObjectProperty,
+    OptionProperty,
+    StringProperty,
+)
 from kivy.utils import platform
 from kivy.uix.widget import Widget
 from kivy.storage.jsonstore import JsonStore
@@ -14,6 +22,7 @@ from kivymd.uix.button import MDIconButton
 from kivymd.uix.label import MDIcon
 from kivymd.uix.card import MDCardSwipe
 from kivymd.toast import toast
+from kivymd.theming import ThemableBehavior
 
 from plyer import filechooser
 
@@ -22,7 +31,7 @@ from mutagen.mp3 import MP3
 from io import BytesIO
 from PIL import Image
 
-import os, mutagen, copy
+import os, mutagen, pygame, random, threading, time, math
 
 if platform == "android":
 	from android.storage import primary_external_storage_path
@@ -97,11 +106,16 @@ Screen:
 	max_opened_x: dp(72)
 
 	MDCardSwipeLayerBox:
+		canvas:
+	        Color:
+	            rgba: app.theme_cls.primary_light
+	        Rectangle:
+	            size: self.size
+	            pos: self.pos
 		padding: dp(10), 0
-		MDIconButton:
+		MDIcon:
 			icon: "playlist-plus"
 			pos_hint: {"center_y": .5}
-			on_release: print("should've been added to the queue")
 
 	MDCardSwipeFrontBox:
 		elevation: 1
@@ -131,6 +145,12 @@ Screen:
 	max_opened_x: dp(72)
 
 	MDCardSwipeLayerBox:
+		canvas:
+	        Color:
+	            rgba: app.theme_cls.primary_light
+	        Rectangle:
+	            size: self.size
+	            pos: self.pos
 		padding: dp(10), 0
 		MDIcon:
 			icon: "playlist-plus"
@@ -158,13 +178,10 @@ Screen:
 				padding: 0, 0
 				theme_text_color: "Custom"
 				text_color: app.theme_cls.secondary_text_color
-
 '''
-
 
 class IconLeftWidgetWithoutTouch(ILeftBody, MDIcon):
 	_no_ripple_effect = True
-
 
 class PlaylistItem(MDCardSwipe):
 	text = StringProperty("")
@@ -184,7 +201,6 @@ class PlaylistItem(MDCardSwipe):
 		if self.state == "opened":
 			MDApp.get_running_app().add_to_queue(self.path)
 			self.close_card()
-
 
 class PlaylistItemWithCover(MDCardSwipe):
 	text = StringProperty("")
@@ -212,7 +228,7 @@ class ButtonListItem(TwoLineAvatarIconListItem):
 class DropdownButton(IRightBodyTouch, MDIconButton):
 	pass
 
-
+# the actuall App
 class MainApp(MDApp):
 	def build(self):
 		self.theme_cls.theme_style = "Dark" # we need DARK Theme lol
@@ -220,6 +236,13 @@ class MainApp(MDApp):
 
 	def on_start(self):
 		print("We\'re in", Path.cwd(), "Our OS is", platform)
+
+		# music related stuff
+		pygame.mixer.init()
+
+		# init all the Variables & Lists
+		self.songlength = -0.001
+		self.playing = False
 		self.songlist = []
 
 		self.queue = JsonStore(os.path.abspath("queue.json"))
