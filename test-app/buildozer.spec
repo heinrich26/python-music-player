@@ -19,7 +19,7 @@ source.include_exts = py,png,jpg,kv,atlas,ttf
 #source.include_patterns = assets/*,images/*.png
 
 # (list) Source files to exclude (let empty to not exclude anything)
-source.exclude_exts = spec2
+#source.exclude_exts = spec2
 
 # (list) List of directory to exclude (let empty to not exclude anything)
 source.exclude_dirs = tests, bin
@@ -31,7 +31,7 @@ source.exclude_dirs = tests, bin
 version = 0.1
 
 # (list) Application requirements
-requirements = python3,kivy==master,git+https://github.com/HeaTTheatR/KivyMD.git,android,PIL,plyer
+requirements = python3,kivy==master,git+https://github.com/HeaTTheatR/KivyMD.git,android,PIL,plyer,mutagen
 orientation = portrait
 
 # (list) List of service to declare
