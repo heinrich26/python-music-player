@@ -1,0 +1,138 @@
+<ButtonListItem>:
+	ImageLeftWidget:
+		source: root.source
+
+	DropdownButton:
+		icon: "dots-vertical"
+
+Screen:
+	BoxLayout:
+		orientation: "vertical"
+		ScreenManager:
+			id: screen_manager
+			Screen:
+				name: "main_page"
+				BoxLayout:
+					orientation: "vertical"
+
+					MDRectangleFlatButton:
+						text: "Music Library"
+						pos_hint: {'center_x': .5, 'center_y': 1}
+						on_press:
+							app.nav_to("song_view")
+
+					MDLabel:
+						text: "Hendriks Stupid Music Player"
+						halign: "center"
+			Screen:
+				name: "song_view"
+				BoxLayout:
+					orientation: "vertical"
+
+					MDToolbar:
+						title: "Library"
+						left_action_items: [["keyboard-backspace", lambda event: app.nav_to("main_page")]]
+						right_action_items: [["music-note-plus", lambda event: app.init_add_song()]]
+
+
+					RecycleView:
+						id: playlist_container
+						key_viewclass: "viewclass"
+						key_size: "height"
+						bar_width: dp(4)
+						bar_color: app.theme_cls.primary_color
+
+						RecycleBoxLayout:
+							orientation: "vertical"
+							spacing: dp(1)
+							default_size: None, dp(72)
+							default_size_hint: 1, None
+							size_hint_y: None
+							height: self.minimum_height
+
+		MDToolbar:
+			title: 'Track Bar'
+			md_bg_color: .2, .2, .2, 1
+			specific_text_color: 1, 1, 1, 1
+
+<PlaylistItemWithCover>
+	elevation: 0
+	size_hint_y: None
+	height: content.height
+	type_swipe: "auto"
+	max_swipe_x: 0.3
+	max_opened_x: dp(72)
+
+	MDCardSwipeLayerBox:
+		canvas:
+	        Color:
+	            rgba: app.theme_cls.primary_light
+	        Rectangle:
+	            size: self.size
+	            pos: self.pos
+		padding: dp(10), 0
+		MDIcon:
+			icon: "playlist-plus"
+			pos_hint: {"center_y": .5}
+
+	MDCardSwipeFrontBox:
+		elevation: 1
+
+		TwoLineAvatarListItem:
+			id: content
+			elevation: 0
+			padding: dp(6), 0, 0, 0
+			_txt_top_pad: dp(12)
+			_txt_bot_pad: dp(6)
+			_txt_left_pad: dp(84)
+			font_style: "Subtitle1"
+			secondary_font_style: "Subtitle1"
+			text: root.text
+			secondary_text: root.secondary_text
+			on_press: print(root.cover)
+			ImageLeftWidget:
+				source: root.cover
+				radius: dp(4), dp(4)
+
+<PlaylistItem>
+	elevation: 0
+	size_hint_y: None
+	height: content.height
+	type_swipe: "auto"
+	max_swipe_x: 0.3
+	max_opened_x: dp(72)
+
+	MDCardSwipeLayerBox:
+		canvas:
+	        Color:
+	            rgba: app.theme_cls.primary_light
+	        Rectangle:
+	            size: self.size
+	            pos: self.pos
+		padding: dp(10), 0
+		MDIcon:
+			icon: "playlist-plus"
+			pos_hint: {"center_y": .5}
+
+	MDCardSwipeFrontBox:
+		elevation: 1
+
+		TwoLineAvatarListItem:
+			id: content
+			elevation: 0
+			padding: dp(6), 0, 0, 0
+			_txt_top_pad: dp(12)
+			_txt_bot_pad: dp(6)
+			_txt_left_pad: dp(84)
+			font_style: "Subtitle1"
+			secondary_font_style: "Subtitle1"
+			text: root.text
+			secondary_text: root.secondary_text
+			on_press: print("i dont have a cover")
+			IconLeftWidgetWithoutTouch:
+				id: icon
+				icon: "account-music"
+				font_size: dp(56)
+				padding: 0, 0
+				theme_text_color: "Custom"
+				text_color: app.theme_cls.secondary_text_color
