@@ -31,7 +31,7 @@ source.exclude_dirs = tests, bin
 version = 0.1
 
 # (list) Application requirements
-requirements = python3,kivy==master,git+https://github.com/HeaTTheatR/KivyMD.git,sdl2_ttf==2.0.15,android,PIL,plyer,mutagen
+requirements = python3,kivy==master,git+https://github.com/HeaTTheatR/KivyMD.git,sdl2_ttf==2.0.15,android,PIL,plyer,mutagen,pygame
 orientation = portrait
 
 # (list) List of service to declare
