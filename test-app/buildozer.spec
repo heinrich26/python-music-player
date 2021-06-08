@@ -28,10 +28,10 @@ source.exclude_dirs = tests, bin
 #source.exclude_patterns = license,images/*/*.jpg
 
 # (str) Application versioning (method 1)
-version = 0.1
+version = 0.1.1
 
 # (list) Application requirements
-requirements = python3,kivy==master,git+https://github.com/HeaTTheatR/KivyMD.git,sdl2_ttf==2.0.15,android,PIL,plyer,mutagen,pygame
+requirements = python3,kivy==master,git+https://github.com/HeaTTheatR/KivyMD.git,sdl2_ttf==2.0.15,android,PIL,plyer==master,git+https://github.com/kivy/plyer.git,mutagen,pygame
 orientation = portrait
 
 # (list) List of service to declare

@@ -230,6 +230,8 @@ class DropdownButton(IRightBodyTouch, MDIconButton):
 
 # the actuall App
 class MainApp(MDApp):
+	selection = ListProperty([])
+
 	def build(self):
 		self.theme_cls.theme_style = "Dark" # we need DARK Theme lol
 		return Builder.load_string(KV)
@@ -263,7 +265,15 @@ class MainApp(MDApp):
 			self.add_playlist_item(self.song_database.get(song))
 
 	def init_add_song(self):
-		filechooser.open_file(on_selection=self.add_song, multiple=True, filters=[["Music Files", "*mp3", "*m4a", "*ogg", "*wav"]])
+		filechooser.open_file(on_selection=self.handle_selection, multiple=True, filters=[["Music Files", "*mp3", "*m4a", "*ogg", "*wav"]])
+
+	def handle_selection(self, selection):
+		if selection:
+			self.selection = selection
+
+	def on_selection(self, *args, **kwargs):
+		print(self.selection)
+		self.add_song(self.selection)
 
 	def add_song(self, files: list):
 		if files:
