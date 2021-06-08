@@ -50,15 +50,76 @@ Screen:
 							size_hint_y: None
 							height: self.minimum_height
 
-		MDToolbar:
-			title: 'Track Bar'
-			md_bg_color: .2, .2, .2, 1
-			specific_text_color: 1, 1, 1, 1
+		# MDToolbar:
+		# 	id: trackbar
+		# 	title: 'Track Bar'
+		# 	md_bg_color: .2, .2, .2, 1
+		# 	specific_text_color: 1, 1, 1, 1
+
+		BoxLayout:
+			orientation: "vertical"
+			size_hint: 1, None
+			height: dp(77)
+			spacing: dp(1)
+			# space for the timeline
+			MDProgressBar:
+				id: trackbar_timeline
+				height: dp(4)
+				value: 50
+				size_hint_y: None
+			MDSwiper:
+				id: trackbar_slider
+				height: dp(72)
+				size_hint: 1, None
+				width: root.width
+				width_mult: 1
+				padding: 0, 0
+				items_spacing: 0
+
+				MDSwiperItem:
+					size_hint: 1, 1
+
+				MDSwiperItem:
+					size_hint: 1, 1
+
+
+
+<SwipeablePlaylistItem>
+	size_hint: 1, 1
+	width: app.root.width
+
+# <SwipeablePlaylistItemNoCover>:
+# 	id: content
+# 	padding: dp(6), 0, 0, 0
+# 	_txt_top_pad: dp(12)
+# 	_txt_bot_pad: dp(6)
+# 	_txt_left_pad: dp(84)
+# 	font_style: "Subtitle1"
+# 	secondary_font_style: "Subtitle1"
+#
+# 	IconLeftWidgetWithoutTouch:
+# 		icon: "account-music"
+# 		font_size: dp(56)
+# 		padding: 0, 0
+# 		theme_text_color: "Custom"
+# 		text_color: app.theme_cls.secondary_text_color
+#
+# <SwipeablePlaylistItemWithCover>:
+# 	padding: dp(6), 0, 0, 0
+# 	_txt_top_pad: dp(12)
+# 	_txt_bot_pad: dp(6)
+# 	_txt_left_pad: dp(84)
+# 	font_style: "Subtitle1"
+# 	secondary_font_style: "Subtitle1"
+#
+# 	ImageLeftWidget:
+# 		source: root.cover
+# 		radius: dp(4), dp(4)
 
 <PlaylistItemWithCover>
 	elevation: 0
 	size_hint_y: None
-	height: content.height
+	height: dp(72)
 	type_swipe: "auto"
 	max_swipe_x: 0.3
 	max_opened_x: dp(72)
@@ -89,7 +150,7 @@ Screen:
 			secondary_font_style: "Subtitle1"
 			text: root.text
 			secondary_text: root.secondary_text
-			on_press: print(root.cover)
+
 			ImageLeftWidget:
 				source: root.cover
 				radius: dp(4), dp(4)
@@ -97,7 +158,7 @@ Screen:
 <PlaylistItem>
 	elevation: 0
 	size_hint_y: None
-	height: content.height
+	height: dp(72)
 	type_swipe: "auto"
 	max_swipe_x: 0.3
 	max_opened_x: dp(72)
@@ -116,8 +177,9 @@ Screen:
 
 	MDCardSwipeFrontBox:
 		elevation: 1
+		id: front_box
 
-		TwoLineAvatarListItem:
+		TwoLineIconListItem:
 			id: content
 			elevation: 0
 			padding: dp(6), 0, 0, 0
@@ -128,7 +190,7 @@ Screen:
 			secondary_font_style: "Subtitle1"
 			text: root.text
 			secondary_text: root.secondary_text
-			on_press: print("i dont have a cover")
+
 			IconLeftWidgetWithoutTouch:
 				id: icon
 				icon: "account-music"

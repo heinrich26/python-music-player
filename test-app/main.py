@@ -3,13 +3,13 @@ import kivy
 from kivy.lang import Builder
 from kivy.metrics import dp
 from kivy.properties import (
-    BooleanProperty,
-    ColorProperty,
-    ListProperty,
-    NumericProperty,
-    ObjectProperty,
-    OptionProperty,
-    StringProperty,
+	BooleanProperty,
+	ColorProperty,
+	ListProperty,
+	NumericProperty,
+	ObjectProperty,
+	OptionProperty,
+	StringProperty,
 )
 from kivy.utils import platform
 from kivy.uix.widget import Widget
@@ -17,10 +17,11 @@ from kivy.storage.jsonstore import JsonStore
 
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.list import IRightBodyTouch, TwoLineAvatarIconListItem, ImageLeftWidget, IconLeftWidget, ILeftBody
+from kivymd.uix.list import IRightBodyTouch, TwoLineIconListItem, TwoLineAvatarListItem, ImageLeftWidget, IconLeftWidget, ILeftBody
 from kivymd.uix.button import MDIconButton
 from kivymd.uix.label import MDIcon
 from kivymd.uix.card import MDCardSwipe
+from kivymd.uix.swiper import MDSwiperItem
 from kivymd.toast import toast
 from kivymd.theming import ThemableBehavior
 
@@ -31,16 +32,54 @@ from mutagen.mp3 import MP3
 from io import BytesIO
 from PIL import Image
 
-import os, mutagen, pygame, random, threading, time, math
+import os
+import mutagen
+import pygame
+import random
+import threading
+import time
+import math
 
 if platform == "android":
 	from android.storage import primary_external_storage_path
 	from android.permissions import request_permissions, Permission
 	request_permissions([
-        Permission.WRITE_EXTERNAL_STORAGE,
-        Permission.READ_EXTERNAL_STORAGE,
-        Permission.INTERNET,
-    ])
+		Permission.WRITE_EXTERNAL_STORAGE,
+		Permission.READ_EXTERNAL_STORAGE,
+		Permission.INTERNET, Permission.MANAGE_EXTERNAL_STORAGE
+	])
+
+class SwipeablePlaylistItemNoCover(TwoLineIconListItem):
+	path = StringProperty("")
+
+	def __init__(self, **kwargs):
+		super().__init__(**kwargs)
+		self.ids._left_container.size = (dp(60), dp(60))
+		self.ids._left_container.x = self.x + dp(14)
+		self.ids._lbl_primary.font_size = 22
+		self.ids._lbl_secondary.font_size = 16
+		self.ids._text_container.spacing = dp(4)
+		self.ids._left_container.remove_widget(self.ids._lbl_tertiary)
+
+class SwipeablePlaylistItemWithCover(TwoLineAvatarListItem):
+	cover = StringProperty("")
+	path = StringProperty("")
+
+	def __init__(self, **kwargs):
+		super().__init__(**kwargs)
+		self.ids._left_container.size = (dp(60), dp(60))
+		self.ids._left_container.x = self.x + dp(14)
+		self.ids._lbl_primary.font_size = 22
+		self.ids._lbl_secondary.font_size = 16
+		self.ids._text_container.spacing = dp(4)
+		self.ids._left_container.remove_widget(self.ids._lbl_tertiary)
+
+class SwipeablePlaylistItem(MDSwiperItem):
+	def __init__(self, data):
+		super().__init__()
+		playlist_item = make_playlist_item(data)
+		type = playlist_item.pop("viewclass")
+		self.add_widget(PlaylistItem(**playlist_item).ids.content if type == "PlaylistItem" else PlaylistItemWithCover(**playlist_item).ids.content)
 
 
 class IconLeftWidgetWithoutTouch(ILeftBody, MDIcon):
@@ -59,11 +98,17 @@ class PlaylistItem(MDCardSwipe):
 		self.ids.content.ids._lbl_secondary.font_size = 16
 		self.ids.content.ids._text_container.spacing = dp(4)
 		self.ids.content.ids._left_container.remove_widget(self.ids.content.ids._lbl_tertiary)
+		self.app = MDApp.get_running_app()
+		self.ids.content.bind(on_release=self.release_event)
 
 	def on_swipe_complete(self, *args):
 		if self.state == "opened":
-			MDApp.get_running_app().add_to_queue(self.path)
+			self.app.add_to_queue(self.path)
 			self.close_card()
+
+	def release_event(self, *args):
+		if self.open_progress == 0.0:
+			self.app.play_pause(self.path)
 
 class PlaylistItemWithCover(MDCardSwipe):
 	text = StringProperty("")
@@ -79,17 +124,54 @@ class PlaylistItemWithCover(MDCardSwipe):
 		self.ids.content.ids._lbl_secondary.font_size = 16
 		self.ids.content.ids._text_container.spacing = dp(4)
 		self.ids.content.ids._left_container.remove_widget(self.ids.content.ids._lbl_tertiary)
+		self.app = MDApp.get_running_app()
+		self.ids.content.bind(on_release=self.release_event)
 
 	def on_swipe_complete(self, *args):
 		if self.state == "opened":
-			MDApp.get_running_app().add_to_queue(self.path)
+			self.app.add_to_queue(self.path)
 			self.close_card()
 
-class ButtonListItem(TwoLineAvatarIconListItem):
-	source = StringProperty("src/img/music_logo.png")
+	def release_event(self, *args):
+		if self.open_progress == 0.0:
+			self.app.play_pause(self.path)
 
 class DropdownButton(IRightBodyTouch, MDIconButton):
 	pass
+
+# Class to simplify the database access
+class Database(object):
+	def __init__(self, path: str = ""):
+		self._db = JsonStore(os.path.abspath(path))
+		if not self._db.exists("root"):  # fix the playback etc.
+			self._db.put("root", **{"queue": [], "playback": [],
+						 "current_song": None, "generated_queue": []})
+		elif len(self._db["root"]) != 4:
+			if not "queue" in self._db["root"]:
+				self._db["root"]["queue"] = []
+			if not "playback" in self._db["root"]:
+				self._db["root"]["playback"] = []
+			if not "current_song" in self._db["root"]:
+				self._db["root"]["current_song"] = None
+			if not "generated_queue" in self._db["root"]:
+				self._db["root"]["generated_queue"] = []
+		self._mirror = self._db.get("root")
+
+	def __setattr__(self, name, value):
+		if not name in ("_mirror", "_db"):
+			self._mirror.update({name:value})
+			self._db.put("root", **self._mirror)
+		super(Database, self).__setattr__(name, value)
+
+	def __getattr__(self, name):
+		if not name in ("_mirror", "_db"):
+			if name in self._mirror:
+				try:
+					return self._mirror[name]
+				finally:
+					self._db.put("root", **self._mirror)
+			else:
+				return None
 
 # the actuall App
 class MainApp(MDApp):
@@ -110,18 +192,8 @@ class MainApp(MDApp):
 		self.playing = False
 		self.songlist = []
 
-		self.queue = JsonStore(os.path.abspath("queue.json"))
-		if not self.queue.exists("root"): # fix the playback etc.
-			self.queue["root"] = {"queue": [], "playback": [], "current_song": None, "generated_queue": []}
-		elif len(self.queue["root"]) != 4:
-			if not "queue" in self.queue["root"]:
-				self.queue["root"]["queue"] = []
-			if not "playback" in self.queue["root"]:
-				self.queue["root"]["playback"] = []
-			if not "current_song" in self.queue["root"]:
-				self.queue["root"]["current_song"] = None
-			if not "generated_queue" in self.queue["root"]:
-				self.queue["root"]["generated_queue"] = []
+		# init the Database
+		self.db = Database("db.json")
 
 		self.song_database = JsonStore(os.path.abspath("song_library.json"))
 		for song in self.song_database.keys(): # setup Library
@@ -177,14 +249,59 @@ class MainApp(MDApp):
 		song_widget = make_playlist_item(song)
 		self.root.ids.playlist_container.data.insert(sorted(self.song_database.keys(), key=lambda path: self.song_database.get(path)["title"]).index(song["path"]), song_widget)
 
+	# Nav between Pages
 	def nav_to(self, page):
 		self.root.ids.screen_manager.current = page
 
+	def play_pause(self, arg):
+		if type(arg) == bool:
+			if not arg:
+				pygame.mixer.music.pause()
+				self.playing = False
+			elif pygame.mixer.music.get_pos() == -1:
+				# only play if songs exist
+				if self.songdata != {}:
+					new_song = self.song_database[random.choice(list(self.song_database.keys()))]
+
+					pygame.mixer.music.load(new_song["path"])
+					self.current_song = new_song
+					self.songlength = new_song["length"]
+
+					pygame.mixer.music.play(loops=0)
+					self.playing = True
+				# reset the Button
+				else: self.ui.actionPlay_Pause.setChecked(False)
+			else:
+				pygame.mixer.music.unpause()
+				self.playing = True
+		else:
+			try:
+				old_song = copy(self.current_song)
+			except:
+				pass
+			pygame.mixer.music.load(arg)
+			self.current_song = self.song_database[arg]
+			prev_widget = self.root.ids.trackbar_slider.get_current_item()
+			index = self.root.ids.trackbar_slider.get_current_index() + 1
+			self.root.ids.trackbar_slider.add_widget(SwipeablePlaylistItem(self.song_database[arg]), index)
+			self.root.ids.trackbar_slider.set_current(index)
+			if type(prev_widget) == MDSwiperItem:
+				self.root.ids.trackbar_slider.remove_widget(prev_widget)
+			self.songlength = self.song_database[arg]["length"]
+			# update the Queue
+
+			pygame.mixer.music.play(loops=0)
+			self.playing = True
+			try:
+				pygame.mixer.music.unload(old_song["path"])
+			except:
+				pass
+
 	def add_to_queue(self, path):
 		toast(f"Added {self.song_database.get(path)['title']} to Queue!")
-		self.queue["root"]["queue"].append(path)
+		self.db.queue.append(path)
 
-
+# Function to return RecycleView Data
 def make_playlist_item(data):
 	m, s = divmod(int(round(data["length"], 0)), 60)
 	instance = {"viewclass": "PlaylistItemWithCover" if "cover" in data else "PlaylistItem",
