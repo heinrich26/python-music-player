@@ -44,7 +44,6 @@ Screen:
 
 						RecycleBoxLayout:
 							orientation: "vertical"
-							spacing: dp(1)
 							default_size: None, dp(72)
 							default_size_hint: 1, None
 							size_hint_y: None
@@ -85,22 +84,20 @@ Screen:
 <SwipeablePlaylistItem>:
 	size_hint: 1, 1
 	width: app.root.width
-	TwoLineIconListItem:
+
+	BasePlaylistItem:
 		id: content
-		padding: dp(6), 0, 0, 0
-		_txt_top_pad: dp(12)
-		_txt_bot_pad: dp(6)
-		_txt_left_pad: dp(84)
-		font_style: "Subtitle1"
+		divider: False
 		text: root.text
 		secondary_text: root.secondary_text
-		secondary_font_style: "Subtitle1"
 		on_release: app.open_current_playing_menu()
 
 		IconLeftWidgetWithoutTouch:
+			id: icon
+			x: self.parent.x + dp(14)
+			size: dp(72), dp(72)
 			icon: "account-music"
 			font_size: dp(56)
-			padding: 0, 0
 			theme_text_color: "Custom"
 			text_color: app.theme_cls.secondary_text_color
 
@@ -108,20 +105,22 @@ Screen:
 	size_hint: 1, 1
 	width: app.root.width
 
-	TwoLineAvatarListItem:
+	BasePlaylistItem:
 		id: content
-		padding: dp(6), 0, 0, 0
-		_txt_top_pad: dp(12)
-		_txt_bot_pad: dp(6)
-		_txt_left_pad: dp(84)
-		font_style: "Subtitle1"
+		divider: False
 		text: root.text
 		secondary_text: root.secondary_text
-		secondary_font_style: "Subtitle1"
+		on_release: app.open_current_playing_menu()
 
 		ImageLeftWidget:
 			source: root.cover
-			radius: dp(4), dp(4)
+			radius: dp(5), dp(5)
+			size_hint: None, None
+			size: dp(60), dp(60)
+			x: root.x + dp(14)
+			y: root.y + dp(6)
+
+
 
 <PlaylistItemWithCover>
 	elevation: 0
@@ -144,23 +143,31 @@ Screen:
 			pos_hint: {"center_y": .5}
 
 	MDCardSwipeFrontBox:
-		elevation: 1
+		elevation: 0
 
-		TwoLineAvatarListItem:
-			id: content
+		BasePlaylistItem:
 			elevation: 0
-			padding: dp(6), 0, 0, 0
-			_txt_top_pad: dp(12)
-			_txt_bot_pad: dp(6)
-			_txt_left_pad: dp(84)
-			font_style: "Subtitle1"
-			secondary_font_style: "Subtitle1"
+			id: content
 			text: root.text
 			secondary_text: root.secondary_text
 
 			ImageLeftWidget:
 				source: root.cover
-				radius: dp(4), dp(4)
+				radius: dp(5), dp(5)
+				size_hint: None, None
+				size: dp(60), dp(60)
+				x: self.parent.x + dp(14)
+				y: dp(6)
+
+			IconLeftWidgetWithoutTouch:
+				id: cover_overlay
+				x: self.parent.x + dp(14)
+				size: dp(72), dp(72)
+				icon: "account-music"
+				font_size: dp(56)
+				theme_text_color: "Custom"
+				text_color: app.theme_cls.secondary_text_color
+				opacity: 0.5 if app.is_current_song(root.path) else 0.0
 
 <PlaylistItem>
 	elevation: 0
@@ -183,25 +190,70 @@ Screen:
 			pos_hint: {"center_y": .5}
 
 	MDCardSwipeFrontBox:
-		elevation: 1
+		elevation: 0
 		id: front_box
 
-		TwoLineIconListItem:
-			id: content
+		BasePlaylistItem:
 			elevation: 0
-			padding: dp(6), 0, 0, 0
-			_txt_top_pad: dp(12)
-			_txt_bot_pad: dp(6)
-			_txt_left_pad: dp(84)
-			font_style: "Subtitle1"
-			secondary_font_style: "Subtitle1"
+			id: content
 			text: root.text
 			secondary_text: root.secondary_text
 
 			IconLeftWidgetWithoutTouch:
 				id: icon
+				x: self.parent.x + dp(14)
+				size: dp(72), dp(72)
 				icon: "account-music"
 				font_size: dp(56)
-				padding: 0, 0
 				theme_text_color: "Custom"
 				text_color: app.theme_cls.secondary_text_color
+
+<BasePlaylistItem>
+	elevation: -1
+	padding: dp(6), 0, 0, 0
+    size_hint_y: None
+	height: dp(72)
+	hard_shadow_cl: (0,0,0,0)
+	draw_shadow: None
+	soft_shadow_cl: (0,0,0,0)
+    canvas:
+		Color:
+			rgba:
+				self.theme_cls.divider_color if self.divider else (0,0,0,0)
+		Line:
+			width: dp(1.5)
+			points: (root.x + dp(84), root.y, root.x + self.width, root.y)
+    BoxLayout:
+        id: _text_container
+        orientation: "vertical"
+        pos: root.pos
+        padding: dp(84), dp(12), dp(84), dp(6)
+		spacing: dp(4)
+        MDLabel:
+            id: _lbl_primary
+            text: root.text
+            font_style: "Subtitle1"
+			font_size: 22
+            theme_text_color: "Primary"
+            size_hint_y: None
+            height: self.texture_size[1]
+            markup: True
+            shorten_from: "right"
+            shorten: True
+        MDLabel:
+            id: _lbl_secondary
+            text: root.secondary_text
+            font_style: "Subtitle1"
+			font_size: 16
+            theme_text_color: "Secondary"
+            size_hint_y: None
+            height: self.texture_size[1]
+            shorten: True
+            shorten_from: "right"
+            markup: True
+    BoxLayout:
+        id: _right_container
+        size_hint: None, None
+        x: root.x + root.width - m_res.HORIZ_MARGINS - self.width
+        y: root.y + root.height / 2 - self.height / 2
+        size: dp(48), dp(48)

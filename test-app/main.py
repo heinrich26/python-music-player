@@ -15,14 +15,17 @@ from kivy.utils import platform
 from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.storage.jsonstore import JsonStore
+from kivy.uix.behaviors import ButtonBehavior
+from kivy.uix.floatlayout import FloatLayout
 
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.list import IRightBodyTouch, TwoLineIconListItem, TwoLineAvatarListItem, ImageLeftWidget, IconLeftWidget, ILeftBody
+from kivymd.uix.list import IRightBodyTouch, TwoLineIconListItem, TwoLineAvatarListItem, ImageLeftWidget, IconLeftWidget, ILeftBody, ContainerSupport
 from kivymd.uix.button import MDIconButton
 from kivymd.uix.label import MDIcon
 from kivymd.uix.card import MDCardSwipe
 from kivymd.uix.swiper import MDSwiperItem
+from kivymd.uix.behaviors import TouchBehavior, RectangularRippleBehavior
 from kivymd.toast import toast
 from kivymd.theming import ThemableBehavior
 
@@ -58,13 +61,9 @@ class SwipeablePlaylistItem(MDSwiperItem):
 
 	def __init__(self, **kwargs):
 		super().__init__(**kwargs)
-		self.remove_widget(self.children[1])
-		self.ids.content.ids._left_container.size = (dp(60), dp(60))
-		self.ids.content.ids._left_container.x = self.x + dp(14)
-		self.ids.content.ids._lbl_primary.font_size = 22
-		self.ids.content.ids._lbl_secondary.font_size = 16
-		self.ids.content.ids._text_container.spacing = dp(4)
-		self.ids.content.ids._left_container.remove_widget(self.ids.content.ids._lbl_tertiary)
+		if len(self.children) == 2:
+			print("this is broken")
+			self.remove_widget(self.children[1])
 
 class SwipeablePlaylistItemWithCover(MDSwiperItem):
 	cover = StringProperty("")
@@ -74,30 +73,20 @@ class SwipeablePlaylistItemWithCover(MDSwiperItem):
 
 	def __init__(self, **kwargs):
 		super().__init__(**kwargs)
-		self.remove_widget(self.children[1])
-		self.ids.content.ids._left_container.size = (dp(60), dp(60))
-		self.ids.content.ids._left_container.x = self.x + dp(14)
-		self.ids.content.ids._lbl_primary.font_size = 22
-		self.ids.content.ids._lbl_secondary.font_size = 16
-		self.ids.content.ids._text_container.spacing = dp(4)
-		self.ids.content.ids._left_container.remove_widget(self.ids.content.ids._lbl_tertiary)
+		if len(self.children) == 2:
+			print("this is broken")
+			self.remove_widget(self.children[1])
 
 class IconLeftWidgetWithoutTouch(ILeftBody, MDIcon):
 	_no_ripple_effect = True
 
-class PlaylistItem(MDCardSwipe):
+class PlaylistItem(MDCardSwipe, TouchBehavior):
 	text = StringProperty("")
 	secondary_text = StringProperty("")
 	path = StringProperty("")
 
 	def __init__(self, **kwargs):
 		super().__init__(**kwargs)
-		self.ids.content.ids._left_container.size = (dp(60), dp(60))
-		self.ids.content.ids._left_container.x = self.x + dp(14)
-		self.ids.content.ids._lbl_primary.font_size = 22
-		self.ids.content.ids._lbl_secondary.font_size = 16
-		self.ids.content.ids._text_container.spacing = dp(4)
-		self.ids.content.ids._left_container.remove_widget(self.ids.content.ids._lbl_tertiary)
 		self.app = MDApp.get_running_app()
 		self.ids.content.bind(on_release=self.release_event)
 
@@ -105,6 +94,9 @@ class PlaylistItem(MDCardSwipe):
 		if self.state == "opened":
 			self.app.add_to_queue(self.path)
 			self.close_card()
+
+	def on_long_touch(self, *args):
+		print("hello")
 
 	def release_event(self, *args):
 		if self.open_progress == 0.0:
@@ -118,12 +110,6 @@ class PlaylistItemWithCover(MDCardSwipe):
 
 	def __init__(self, **kwargs):
 		super().__init__(**kwargs)
-		self.ids.content.ids._left_container.size = (dp(60), dp(60))
-		self.ids.content.ids._left_container.x = self.x + dp(14)
-		self.ids.content.ids._lbl_primary.font_size = 22
-		self.ids.content.ids._lbl_secondary.font_size = 16
-		self.ids.content.ids._text_container.spacing = dp(4)
-		self.ids.content.ids._left_container.remove_widget(self.ids.content.ids._lbl_tertiary)
 		self.app = MDApp.get_running_app()
 		self.ids.content.bind(on_release=self.release_event)
 
@@ -131,10 +117,20 @@ class PlaylistItemWithCover(MDCardSwipe):
 		if self.state == "opened":
 			self.app.add_to_queue(self.path)
 			self.close_card()
+		super().on_swipe_complete(*args)
 
 	def release_event(self, *args):
+		self.ids.content._no_ripple_effect = False
 		if self.open_progress == 0.0:
 			self.app.play_pause(self.path)
+
+class BasePlaylistItem(ThemableBehavior, RectangularRippleBehavior, ButtonBehavior, FloatLayout, ContainerSupport):
+	text = StringProperty()
+	secondary_text = StringProperty()
+	divider = BooleanProperty(True)
+	bg_color = ColorProperty(None)
+	_no_ripple_effect = BooleanProperty(False)
+
 
 class DropdownButton(IRightBodyTouch, MDIconButton):
 	pass
@@ -264,7 +260,7 @@ class MainApp(MDApp):
 					new_song = self.song_database[random.choice(list(self.song_database.keys()))]
 
 					pygame.mixer.music.load(new_song["path"])
-					self.current_song = new_song
+					self.db.current_song = new_song
 					self.songlength = new_song["length"]
 
 					pygame.mixer.music.play(loops=0)
@@ -276,11 +272,11 @@ class MainApp(MDApp):
 				self.playing = True
 		else:
 			try:
-				old_song = copy(self.current_song)
+				old_song = copy(self.db.current_song)
 			except:
 				pass
 			pygame.mixer.music.load(arg)
-			self.current_song = self.song_database[arg]
+			self.db.current_song = self.song_database[arg]
 			prev_widget = self.root.ids.trackbar_slider.get_current_item()
 			index = self.root.ids.trackbar_slider.get_current_index() + 1
 			self.add_to_trackbar(arg, index)
@@ -305,6 +301,15 @@ class MainApp(MDApp):
 		data = make_playlist_item(self.song_database[path])
 		type = data.pop("viewclass")
 		self.root.ids.trackbar_slider.add_widget(SwipeablePlaylistItem(**data) if type == "PlaylistItem" else SwipeablePlaylistItemWithCover(**data))
+
+	def open_current_playing_menu(self):
+		pass
+
+	def is_current_song(self, path):
+		if self.db.current_song == None:
+			if path == self.db.current_song["path"]:
+				return True
+		return False
 
 # Function to return RecycleView Data
 def make_playlist_item(data):
