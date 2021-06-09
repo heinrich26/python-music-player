@@ -13,6 +13,7 @@ from kivy.properties import (
 )
 from kivy.utils import platform
 from kivy.uix.widget import Widget
+from kivy.uix.button import Button
 from kivy.storage.jsonstore import JsonStore
 
 from kivymd.app import MDApp
@@ -46,41 +47,40 @@ if platform == "android":
 	request_permissions([
 		Permission.WRITE_EXTERNAL_STORAGE,
 		Permission.READ_EXTERNAL_STORAGE,
-		Permission.INTERNET, Permission.MANAGE_EXTERNAL_STORAGE
+		Permission.MANAGE_EXTERNAL_STORAGE,
+		Permission.INTERNET
 	])
 
-class SwipeablePlaylistItemNoCover(TwoLineIconListItem):
+class SwipeablePlaylistItem(MDSwiperItem):
 	path = StringProperty("")
+	text = StringProperty("")
+	secondary_text = StringProperty("")
 
 	def __init__(self, **kwargs):
 		super().__init__(**kwargs)
-		self.ids._left_container.size = (dp(60), dp(60))
-		self.ids._left_container.x = self.x + dp(14)
-		self.ids._lbl_primary.font_size = 22
-		self.ids._lbl_secondary.font_size = 16
-		self.ids._text_container.spacing = dp(4)
-		self.ids._left_container.remove_widget(self.ids._lbl_tertiary)
+		self.remove_widget(self.children[1])
+		self.ids.content.ids._left_container.size = (dp(60), dp(60))
+		self.ids.content.ids._left_container.x = self.x + dp(14)
+		self.ids.content.ids._lbl_primary.font_size = 22
+		self.ids.content.ids._lbl_secondary.font_size = 16
+		self.ids.content.ids._text_container.spacing = dp(4)
+		self.ids.content.ids._left_container.remove_widget(self.ids.content.ids._lbl_tertiary)
 
-class SwipeablePlaylistItemWithCover(TwoLineAvatarListItem):
+class SwipeablePlaylistItemWithCover(MDSwiperItem):
 	cover = StringProperty("")
 	path = StringProperty("")
+	text = StringProperty("")
+	secondary_text = StringProperty("")
 
 	def __init__(self, **kwargs):
 		super().__init__(**kwargs)
-		self.ids._left_container.size = (dp(60), dp(60))
-		self.ids._left_container.x = self.x + dp(14)
-		self.ids._lbl_primary.font_size = 22
-		self.ids._lbl_secondary.font_size = 16
-		self.ids._text_container.spacing = dp(4)
-		self.ids._left_container.remove_widget(self.ids._lbl_tertiary)
-
-class SwipeablePlaylistItem(MDSwiperItem):
-	def __init__(self, data):
-		super().__init__()
-		playlist_item = make_playlist_item(data)
-		type = playlist_item.pop("viewclass")
-		self.add_widget(PlaylistItem(**playlist_item).ids.content if type == "PlaylistItem" else PlaylistItemWithCover(**playlist_item).ids.content)
-
+		self.remove_widget(self.children[1])
+		self.ids.content.ids._left_container.size = (dp(60), dp(60))
+		self.ids.content.ids._left_container.x = self.x + dp(14)
+		self.ids.content.ids._lbl_primary.font_size = 22
+		self.ids.content.ids._lbl_secondary.font_size = 16
+		self.ids.content.ids._text_container.spacing = dp(4)
+		self.ids.content.ids._left_container.remove_widget(self.ids.content.ids._lbl_tertiary)
 
 class IconLeftWidgetWithoutTouch(ILeftBody, MDIcon):
 	_no_ripple_effect = True
@@ -269,8 +269,8 @@ class MainApp(MDApp):
 
 					pygame.mixer.music.play(loops=0)
 					self.playing = True
-				# reset the Button
-				else: self.ui.actionPlay_Pause.setChecked(False)
+				# reset the Button, because no Songs
+				else: pass
 			else:
 				pygame.mixer.music.unpause()
 				self.playing = True
@@ -283,7 +283,7 @@ class MainApp(MDApp):
 			self.current_song = self.song_database[arg]
 			prev_widget = self.root.ids.trackbar_slider.get_current_item()
 			index = self.root.ids.trackbar_slider.get_current_index() + 1
-			self.root.ids.trackbar_slider.add_widget(SwipeablePlaylistItem(self.song_database[arg]), index)
+			self.add_to_trackbar(arg, index)
 			self.root.ids.trackbar_slider.set_current(index)
 			if type(prev_widget) == MDSwiperItem:
 				self.root.ids.trackbar_slider.remove_widget(prev_widget)
@@ -300,6 +300,11 @@ class MainApp(MDApp):
 	def add_to_queue(self, path):
 		toast(f"Added {self.song_database.get(path)['title']} to Queue!")
 		self.db.queue.append(path)
+
+	def add_to_trackbar(self, path, index):
+		data = make_playlist_item(self.song_database[path])
+		type = data.pop("viewclass")
+		self.root.ids.trackbar_slider.add_widget(SwipeablePlaylistItem(**data) if type == "PlaylistItem" else SwipeablePlaylistItemWithCover(**data))
 
 # Function to return RecycleView Data
 def make_playlist_item(data):
